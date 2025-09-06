@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>랜덤 미로 홈</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f0f0f0; }
+  h1 { margin-bottom: 40px; }
+  button { display: block; margin: 15px auto; padding: 15px 30px; font-size: 18px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>랜덤 미로 난이도 선택</h1>
+
+<button onclick="location.href='완전_쉬움.html'">완전 쉬움</button>
+<button onclick="location.href='쉬움.html'">쉬움</button>
+<button onclick="location.href='중간.html'">중간</button>
+<button onclick="location.href='어려움.html'">어려움</button>
+<button onclick="if(confirm('제일 어려움은 50x50 크기로 완전 깨기 어렵습니다. 깨시겠습니까?')) location.href='제일_어려움.html'">제일 어려움</button>
+
+</body>
+</html>

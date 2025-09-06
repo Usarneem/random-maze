@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>쉬움 미로 (15x15)</title>
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+body { 
+  font-family: Arial, sans-serif; 
+  text-align: center; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+}
+
+#canvasContainer {
+  width: 100%;
+  height: 100%;
+  max-width: 600px;
+  max-height: 600px;
+  margin: 20px auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #ccc;
+  display: block;
+}
+
+button { 
+  margin: 5px; 
+  padding: 10px 20px; 
+  font-size: 16px; 
+  cursor: pointer; 
+}
+</style>
+</head>
+<body>
+
+<h1>쉬움 미로 (15x15)</h1>
+
+<div>
+  <button onclick="resetMaze()">리셋</button>
+  <button onclick="location.href='홈.html'">홈으로</button>
+</div>
+
+<div>
+  <button onclick="move('up')">▲</button><br>
+  <button onclick="move('left')">◀</button>
+  <button onclick="move('down')">▼</button>
+  <button onclick="move('right')">▶</button>
+</div>
+
+<p id="moves">움직임: 0</p>
+
+<div id="canvasContainer">
+  <canvas id="mazeCanvas"></canvas>
+</div>
+
+<script>
+const size = 15; // 15x15 미로
+let maze = [];
+let player = {x:0, y:0};
+let moves = 0;
+
+const canvas = document.getElementById('mazeCanvas');
+const ctx = canvas.getContext('2d');
+
+function generateMazeArray() {
+  maze = [];
+  for(let i=0;i<size;i++){
+    maze[i]=[];
+    for(let j=0;j<size;j++){
+      maze[i][j]={top:true,right:true,bottom:true,left:true,visited:false};
+    }
+  }
+
+  function shuffle(array){return array.sort(()=>Math.random()-0.5);}
+  function dfs(x,y){
+    maze[y][x].visited=true;
+    let dirs = shuffle([[0,-1],[1,0],[0,1],[-1,0]]);
+    for(let [dx,dy] of dirs){
+      let nx=x+dx, ny=y+dy;
+      if(nx>=0&&nx<size&&ny>=0&&ny<size&&!maze[ny][nx].visited){
+        if(dx===1){maze[y][x].right=false; maze[ny][nx].left=false;}
+        if(dx===-1){maze[y][x].left=false; maze[ny][nx].right=false;}
+        if(dy===1){maze[y][x].bottom=false; maze[ny][nx].top=false;}
+        if(dy===-1){maze[y][x].top=false; maze[ny][nx].bottom=false;}
+        dfs(nx,ny);
+      }
+    }
+  }
+  dfs(0,0);
+}
+
+// 캔버스 크기 맞춤
+function resizeCanvas(){
+  const container = document.getElementById('canvasContainer');
+  const style = getComputedStyle(container);
+  const width = parseFloat(style.width);
+  const height = parseFloat(style.height);
+  
+  canvas.width = width;
+  canvas.height = height;
+  ctx.setTransform(1,0,0,1,0,0);
+}
+
+function drawMaze(atEnd=false){
+  resizeCanvas();
+  const cellSize = Math.min(canvas.width, canvas.height) / size;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='black';
+  ctx.lineWidth=2;
+
+  for(let y=0;y<size;y++){
+    for(let x=0;x<size;x++){
+      let cell=maze[y][x];
+      let px=x*cellSize;
+      let py=y*cellSize;
+      if(cell.top){ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+cellSize,py); ctx.stroke();}
+      if(cell.right){ctx.beginPath(); ctx.moveTo(px+cellSize,py); ctx.lineTo(px+cellSize,py+cellSize); ctx.stroke();}
+      if(cell.bottom){ctx.beginPath(); ctx.moveTo(px,py+cellSize); ctx.lineTo(px+cellSize,py+cellSize); ctx.stroke();}
+      if(cell.left){ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px,py+cellSize); ctx.stroke();}
+    }
+  }
+
+  ctx.fillStyle = atEnd ? 'purple' : 'blue';
+  ctx.fillRect(player.x*cellSize+2, player.y*cellSize+2, cellSize-4, cellSize-4);
+
+  if(!atEnd){
+    ctx.fillStyle='red';
+    ctx.fillRect((size-1)*cellSize+2, (size-1)*cellSize+2, cellSize-4, cellSize-4);
+  }
+
+  document.getElementById('moves').innerText=`움직임: ${moves}`;
+}
+
+function move(dir){
+  let x=player.x,y=player.y;
+  let cell=maze[y][x];
+  if(dir==='up'&&!cell.top)y--;
+  if(dir==='down'&&!cell.bottom)y++;
+  if(dir==='left'&&!cell.left)x--;
+  if(dir==='right'&&!cell.right)x++;
+  
+  if(x!==player.x||y!==player.y){
+    player={x,y};
+    moves++;
+    
+    const isAtEnd = (player.x===size-1 && player.y===size-1);
+    drawMaze(isAtEnd); 
+    
+    if(isAtEnd) setTimeout(()=>{ 
+        alert(`🎉 미로 탈출 성공! 움직임: ${moves}`);
+        location.reload();
+    },50);
+  }
+}
+
+function resetMaze(){
+  moves=0;
+  player={x:0,y:0};
+  generateMazeArray();
+  drawMaze();
+}
+
+document.addEventListener('keydown', function(e){
+    switch(e.key){
+        case 'ArrowUp': move('up'); e.preventDefault(); break;
+        case 'ArrowDown': move('down'); e.preventDefault(); break;
+        case 'ArrowLeft': move('left'); e.preventDefault(); break;
+        case 'ArrowRight': move('right'); e.preventDefault(); break;
+    }
+});
+
+window.addEventListener('resize', drawMaze);
+
+resetMaze();
+</script>
+
+</body>
+</html>
